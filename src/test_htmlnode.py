@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNode(unittest.TestCase):
     def test_to_html_props(self):
@@ -63,6 +63,65 @@ class TestHTMLNode(unittest.TestCase):
     def test_leaf_to_html_no_tag(self):
         node = LeafNode(None, "Hello, world!")
         self.assertEqual(node.to_html(), "Hello, world!")
+    
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
+
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+        )
+    
+    def test_multiple_leaf_children(self):
+        child1 = LeafNode("span", "A")
+        child2 = LeafNode("b", "B")
+        parent_node = ParentNode("div", [child1, child2])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span>A</span><b>B</b></div>"
+        )
+
+    def test_empty_children_list(self):
+        parent_node = ParentNode("p", [])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<p></p>"
+        )
+
+    def test_leaf_and_parent_mixed_children(self):
+        child = LeafNode("em", "emphasized")
+        sub_parent = ParentNode("span", [child])
+        parent_node = ParentNode("div", [sub_parent, LeafNode(None, "plain")])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><em>emphasized</em></span>plain</div>"
+        )
+
+    def test_missing_tag_raises_value_error(self):
+        parent_node = ParentNode(None, [LeafNode("b", "bold")])
+        with self.assertRaises(ValueError):
+            parent_node.to_html()
+
+    def test_missing_children_raises_value_error(self):
+        parent_node = ParentNode("div", None)
+        with self.assertRaises(ValueError):
+            parent_node.to_html()
+
+    def test_props_rendering(self):
+        child = LeafNode("span", "with class")
+        parent_node = ParentNode("div", [child], props={"class": "styled"})
+        self.assertEqual(
+            parent_node.to_html(),
+            '<div class="styled"><span>with class</span></div>'
+        )
+    
+
 
 
 
