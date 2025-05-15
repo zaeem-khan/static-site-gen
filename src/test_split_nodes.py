@@ -1,5 +1,5 @@
 import unittest
-from split_nodes import split_nodes_delimiter
+from split_nodes import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 from textnode import TextNode, TextType
 
 class TestSplitNodes(unittest.TestCase):
@@ -79,6 +79,43 @@ class TestSplitNodes(unittest.TestCase):
 
         self.assertListEqual(result, expected_result)
 
+
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_extract_markdown_images(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_multiple_images(self):
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
+        result = extract_markdown_images(text)
+
+        expected_result = [
+            (
+                "image",
+                "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png",
+            ),
+            (
+                "another",
+                "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png",
+            ),
+        ]
+
+        self.assertListEqual(result, expected_result)
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_double_links(self):
+        text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+
+        result = extract_markdown_links(text)
+
+        expected_result = [
+            ("link", "https://www.example.com"),
+            ("another", "https://www.example.com/another"),
+        ]
+
+        self.assertListEqual(result, expected_result)
 
 if __name__ == "__main__":
     unittest.main()
