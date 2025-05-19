@@ -1,5 +1,12 @@
 import unittest
-from split_nodes import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from split_nodes import (
+    split_nodes_delimiter, 
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_image,
+    split_nodes_link,
+    text_to_textnodes
+)
 from textnode import TextNode, TextType
 
 class TestSplitNodes(unittest.TestCase):
@@ -459,6 +466,60 @@ class TextSplitLinks(unittest.TestCase):
 
         self.assertListEqual(result, expected_result)
 
+class TexttoTextNodes(unittest.TestCase):
+        def test_all_types_once(self):
+            text = "This is **text** with an _italic_ word and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/courseassets/zjjcJKZ.png) and a [link](https://boot.dev)"
+
+            result = text_to_textnodes(text)
+
+            expected_result = [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "image",
+                    TextType.IMAGE,
+                    "https://storage.googleapis.com/qvault-webapp-dynamic-assets/courseassets/zjjcJKZ.png",
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ]
+
+            self.assertListEqual(result, expected_result)
+
+        def test_some_multiple(self):
+            text = "This is **text** with an _italic_ word **words and words** and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/courseassets/zjjcJKZ.png) and a [link](https://boot.dev) and the same link again [link](https://boot.dev) and `das code`"
+
+            result = text_to_textnodes(text)
+
+            expected_result = [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word ", TextType.TEXT),
+                TextNode("words and words", TextType.BOLD),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "image",
+                    TextType.IMAGE,
+                    "https://storage.googleapis.com/qvault-webapp-dynamic-assets/courseassets/zjjcJKZ.png",
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" and the same link again ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("das code", TextType.CODE),
+            ]
+
+            self.assertListEqual(result, expected_result)
 
 
 if __name__ == "__main__":
